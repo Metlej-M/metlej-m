@@ -97,3 +97,129 @@ function extendClient(name){
 
 </body>
 </html>
+
+
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>أدمن العميل</title>
+<style>
+body {background:#111; color:#fff; font-family:Arial; text-align:center;}
+input, button {margin:10px; padding:10px; border-radius:5px;}
+button {cursor:pointer; background:#00ffcc; border:none;}
+</style>
+</head>
+<body>
+
+<h2>🔐 تسجيل دخول العميل</h2>
+<div id="loginDiv">
+<input type="text" id="clientName" placeholder="اسم العميل">
+<input type="password" id="clientPass" placeholder="كلمة المرور">
+<button onclick="login()">دخول</button>
+</div>
+
+<div id="clientPanel" style="display:none;">
+<h2>🛠 لوحة التحكم الخاصة بك</h2>
+<h3>➕ إضافة / تعديل المنتجات</h3>
+<input id="prodName" placeholder="اسم المنتج">
+<input id="prodImg" placeholder="رابط الصورة">
+<input id="prodWA" placeholder="رابط واتساب">
+<input id="prodIG" placeholder="رابط إنستغرام">
+<input id="prodFB" placeholder="رابط فيسبوك">
+<button onclick="addProduct()">حفظ المنتج</button>
+
+<h3>📊 عداد زيارات الرابط العام</h3>
+<p id="visitCount">0</p>
+</div>
+
+<script>
+let clients = JSON.parse(localStorage.getItem("clients")) || [];
+let expiryDates = JSON.parse(localStorage.getItem("expiryDates")) || {};
+let products = JSON.parse(localStorage.getItem("products")) || {};
+let currentClient = null;
+
+function login(){
+  let name=document.getElementById("clientName").value;
+  let pass=document.getElementById("clientPass").value;
+  let c = clients.find(c=>c.name===name && c.password===pass);
+  if(c){
+    currentClient=name;
+    document.getElementById("loginDiv").style.display="none";
+    document.getElementById("clientPanel").style.display="block";
+    if(!products[currentClient]) products[currentClient]=[];
+    localStorage.setItem("products", JSON.stringify(products));
+    document.getElementById("visitCount").innerText = c.visits;
+  } else alert("❌ بيانات الدخول خاطئة");
+}
+
+function addProduct(){
+  let pName=document.getElementById("prodName").value;
+  let pImg=document.getElementById("prodImg").value;
+  let pWA=document.getElementById("prodWA").value;
+  let pIG=document.getElementById("prodIG").value;
+  let pFB=document.getElementById("prodFB").value;
+  if(!pName || !pImg){ alert("املأ الاسم والصورة"); return;}
+  products[currentClient].push({name:pName,img:pImg,whatsapp:pWA,instagram:pIG,facebook:pFB});
+  localStorage.setItem("products", JSON.stringify(products));
+  alert("✅ تم حفظ المنتج");
+  document.getElementById("prodName").value="";
+  document.getElementById("prodImg").value="";
+  document.getElementById("prodWA").value="";
+  document.getElementById("prodIG").value="";
+  document.getElementById("prodFB").value="";
+}
+</script>
+
+</body>
+</html>
+
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>صفحة النشر العامة</title>
+<style>
+body {font-family:Arial; background:#111; color:#fff; text-align:center;}
+.product {background:#1c1c1c; margin:15px; padding:15px; border-radius:10px;}
+img {width:200px; border-radius:10px;}
+button {margin:5px; padding:10px 15px; border:none; border-radius:6px; cursor:pointer;}
+</style>
+</head>
+<body>
+
+<h1>🛍 منتجات العملاء</h1>
+<div id="allProducts"></div>
+
+<script>
+let products = JSON.parse(localStorage.getItem("products")) || {};
+let expiryDates = JSON.parse(localStorage.getItem("expiryDates")) || {};
+let clients = JSON.parse(localStorage.getItem("clients")) || [];
+
+let container=document.getElementById("allProducts");
+let now = new Date();
+
+for(let clientName in products){
+  let expiry = new Date(expiryDates[clientName]);
+  if(now <= expiry){
+    products[clientName].forEach(p=>{
+      container.innerHTML += `
+      <div class="product">
+        <h3>${p.name} - ${clientName}</h3>
+        <img src="${p.img}">
+        <br>
+        <button onclick="window.open('${p.whatsapp}')">📲 واتساب</button>
+        <button onclick="window.open('${p.instagram}')">📸 إنستغرام</button>
+        <button onclick="window.open('${p.facebook}')">📘 فيسبوك</button>
+      </div>`;
+    });
+  }
+}
+
+if(container.innerHTML === "") container.innerHTML="<h2>🔒 انتهت صلاحية جميع الاشتراكات، الرجاء التجديد</h2>";
+</script>
+
+</body>
+</html>
